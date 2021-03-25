@@ -23,5 +23,5 @@ const server = createServer(badOpts, badKeyPaths, (req, res) => {
   res.end('Goodbye World!\n');
 }, 20);
 
-
+// eslint-disable-next-line no-console
 server.listen(9999, () => console.log('Server up: ', server.address()));

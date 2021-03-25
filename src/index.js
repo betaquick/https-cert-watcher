@@ -24,8 +24,14 @@ function createServer(certOpts = {}, paths = [], listener, debounceMS) {
   }
 
   const server = https.createServer(createContext(), listener);
+  let shouldHandleFileChange = true;
+
+  server.once('close', () => {
+    shouldHandleFileChange = false;
+  });
 
   const reloadSecureContext = debounce(() => {
+    if (!shouldHandleFileChange) return;
     // eslint-disable-next-line no-console
     console.info('Setting servers secure context');
     server.setSecureContext(createContext());
@@ -35,15 +41,15 @@ function createServer(certOpts = {}, paths = [], listener, debounceMS) {
     paths.forEach((path) => {
       // eslint-disable-next-line no-console
       console.info('Watching ', path);
-      fs.watchFile(path, () => {
-        reloadSecureContext();
+      fs.watch(path, { persistent: false }, () => {
+        if (shouldHandleFileChange) reloadSecureContext();
       });
     });
   }
 
   watchForCertFileChanges();
 
-  process.on('exit', () => paths.forEach((filePath) => fs.unwatchFile(filePath)));
+  //   process.on('exit', () => paths.forEach((filePath) => fs.unwatch(filePath)));
 
   return server;
 }
