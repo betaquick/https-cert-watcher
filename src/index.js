@@ -13,41 +13,37 @@ function debounce(callback, timeout) {
 /**
  *
  * @param {import('tls').SecureContextOptions} certOpts
+ * @param {Array<string>} paths paths to key files
  * @param {import('http').RequestListener} listener
  * @param {number} debounceMS Time to debounce cert refresh in milliseconds
  * @returns {import('https'.Server)} reloading https server
  */
-function createServer(certOpts = {}, listener, debounceMS) {
+function createServer(certOpts = {}, paths = [], listener, debounceMS) {
   function createContext() {
     return tls.createSecureContext(certOpts);
   }
 
   const server = https.createServer(createContext(), listener);
 
-  function reloadSecureContext() {
-    debounce(() => {
-      server.setSecureContext(createContext());
-    }, debounceMS || 1000);
-  }
+  const reloadSecureContext = debounce(() => {
+    // eslint-disable-next-line no-console
+    console.info('Setting servers secure context');
+    server.setSecureContext(createContext());
+  }, debounceMS || 1000);
 
-  /**
-   * @param {Array<string>} files Array of file paths to watch
-   */
-  function watchForCertFileChanges(files) {
-    files.forEach(([path]) => {
-      fs.watch(path, reloadSecureContext);
+  function watchForCertFileChanges() {
+    paths.forEach((path) => {
+      // eslint-disable-next-line no-console
+      console.info('Watching ', path);
+      fs.watchFile(path, () => {
+        reloadSecureContext();
+      });
     });
   }
 
-  reloadSecureContext(server);
+  watchForCertFileChanges();
 
-  const filesToWatch = [
-    certOpts.ca, certOpts.cert, certOpts.crl, certOpts.key,
-  ].filter((x) => !!x);
-
-  watchForCertFileChanges(filesToWatch);
-
-  process.on('exit', () => filesToWatch.forEach((filePath) => fs.unwatchFile(filePath)));
+  process.on('exit', () => paths.forEach((filePath) => fs.unwatchFile(filePath)));
 
   return server;
 }
