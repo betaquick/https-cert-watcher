@@ -4,7 +4,7 @@
   "description": "Create an https server that watches folders for change and reloads context",
   "main": "src/index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "./node_modules/mocha/bin/mocha --exit"
   },
   "keywords": [
     "https;",
@@ -13,11 +13,19 @@
   "author": "Idiakose O. Sunday",
   "license": "MIT",
   "devDependencies": {
+    "chai": "^4.3.4",
     "eslint": "^7.22.0",
     "eslint-config-airbnb-base": "^14.2.1",
-    "eslint-plugin-import": "^2.22.1"
+    "eslint-plugin-import": "^2.22.1",
+    "mocha": "^8.3.2",
+    "supertest": "^6.1.3"
   },
   "engines": {
-    "node": ">=11.0.0" 
+    "node": ">=11.0.0"
+  },
+  "mocha": {
+    "recursive": true,
+    "reporter": "spec",
+    "ui": "bdd"
   }
 }
