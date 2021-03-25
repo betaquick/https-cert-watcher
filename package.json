@@ -1,0 +1,23 @@
+{
+  "name": "https-cert-watcher",
+  "version": "1.0.0",
+  "description": "Create an https server that watches folders for change and reloads context",
+  "main": "src/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "https;",
+    "tls"
+  ],
+  "author": "Idiakose O. Sunday",
+  "license": "MIT",
+  "devDependencies": {
+    "eslint": "^7.22.0",
+    "eslint-config-airbnb-base": "^14.2.1",
+    "eslint-plugin-import": "^2.22.1"
+  },
+  "engines": {
+    "node": ">=11.0.0" 
+  }
+}
