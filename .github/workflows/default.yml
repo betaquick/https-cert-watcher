@@ -1,0 +1,33 @@
+name: Http Server Certs Reload
+on:
+  push:
+  pull_request:
+    branches:
+      - '*'
+
+
+jobs:
+  coverage-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@master
+      - name: npm install, build
+        run: |
+          npm ci
+          npm run test
+      - name: Notify SLack on Failure
+        if: failure()
+        uses: rtCamp/action-slack-notify@v2.0.2
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_HOOK_URL }}
+          SLACK_USERNAME: ghActionsBot
+          SLACK_COLOR: '#cb2431'
+          SLACK_TITLE: "Test Failed"
+      - name: Notify SLack on Success
+        if: success()
+        uses: rtCamp/action-slack-notify@v2.0.2
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_HOOK_URL }}
+          SLACK_USERNAME: ghActionsBot
+          SLACK_COLOR: '#28a745'
+          SLACK_TITLE: "Test Passed"
