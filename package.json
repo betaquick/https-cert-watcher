@@ -4,12 +4,13 @@
   "description": "Create an https server that watches folders for change and reloads context",
   "main": "src/index.js",
   "scripts": {
+    "prepublishOnly": "npm test",
     "lint": "eslint test src",
     "lint:fix": "npm run lint -- --fix",
     "test": "./node_modules/mocha/bin/mocha --exit  --timeout 10000"
   },
   "keywords": [
-    "https;",
+    "https",
     "tls"
   ],
   "author": "Idiakose O. Sunday",
