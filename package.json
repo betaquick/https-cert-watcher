@@ -1,6 +1,6 @@
 {
   "name": "@betaquick/https-cert-watcher",
-  "version": "1.0.1",
+  "version": "2.0.0",
   "description": "Create an https server that watches folders for change and reloads context",
   "main": "src/index.js",
   "scripts": {

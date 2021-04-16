@@ -1,5 +1,4 @@
 const fs = require('fs');
-const tls = require('tls');
 const https = require('https');
 
 function debounce(callback, timeout) {
@@ -10,17 +9,25 @@ function debounce(callback, timeout) {
   };
 }
 
+const defaultLogger = {
+  // eslint-disable-next-line no-console
+  info: console.log,
+  // eslint-disable-next-line no-console
+  debug: console.log
+};
+
 /**
  *
- * @param {import('tls').SecureContextOptions} certOpts
- * @param {Array<string>} paths paths to key files
+ * @param {() => import('tls').SecureContext} serverOptsFactory A function that creates the server context
+ * @param {Array<string>} paths paths to key filesF
  * @param {import('http').RequestListener} listener
  * @param {number} debounceMS Time to debounce cert refresh in milliseconds
+ * @param {{ info: (...args) => void, debug: (...args) => void }=} logger A logger to use
  * @returns {import('https'.Server)} reloading https server
  */
-function createServer(certOpts = {}, paths = [], listener, debounceMS) {
+function createServer(serverOptsFactory = () => ({}), paths = [], listener, debounceMS, logger = defaultLogger) {
   function createContext() {
-    return tls.createSecureContext(certOpts);
+    return serverOptsFactory();
   }
 
   const server = https.createServer(createContext(), listener);
@@ -28,19 +35,21 @@ function createServer(certOpts = {}, paths = [], listener, debounceMS) {
 
   server.once('close', () => {
     shouldHandleFileChange = false;
+    paths.forEach((path) => {
+      logger.info('Unwatching file ', path);
+      fs.unwatchFile(path);
+    });
   });
 
   const reloadSecureContext = debounce(() => {
     if (!shouldHandleFileChange) return;
-    // eslint-disable-next-line no-console
-    console.info('Setting servers secure context');
+    logger.info('Setting servers secure context');
     server.setSecureContext(createContext());
   }, debounceMS || 1000);
 
   function watchForCertFileChanges() {
     paths.forEach((path) => {
-      // eslint-disable-next-line no-console
-      console.info('Watching ', path);
+      logger.info('Watching ', path);
       fs.watch(path, { persistent: false }, () => {
         if (shouldHandleFileChange) reloadSecureContext();
       });
@@ -48,8 +57,6 @@ function createServer(certOpts = {}, paths = [], listener, debounceMS) {
   }
 
   watchForCertFileChanges();
-
-  //   process.on('exit', () => paths.forEach((filePath) => fs.unwatch(filePath)));
 
   return server;
 }
